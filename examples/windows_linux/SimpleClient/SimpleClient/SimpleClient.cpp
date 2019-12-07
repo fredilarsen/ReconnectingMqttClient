@@ -20,7 +20,7 @@ bool timeout() {
   return false;
 }
 
-int main() {
+void main() {
   // Test publishing of a retained message
   uint8_t ip[] = { 127,0,0,1 };
   ReconnectingMqttClient client1(ip, 1883, "reconnectingclient");
