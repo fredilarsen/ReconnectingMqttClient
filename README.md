@@ -8,6 +8,7 @@ It is aimed at being used on multiple platforms. It can be built on:
 * Windows, with project files included for Visual Studio 2017 or later.
 * Linux, makefiles included.
 
+This library depends on the PJON library for portability.
 
 
 

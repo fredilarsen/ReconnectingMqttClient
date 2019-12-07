@@ -2,8 +2,10 @@
 #include <PJON.h>
 #include <interfaces/LINUX/TCPHelper_POSIX.h>
 
+#ifndef ARDUINO
 #include <string>
 #define String std::string
+#endif
 
 // Based on the spec http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718016
 
@@ -47,6 +49,18 @@ class ReconnectingMqttClient {
   int8_t last_connect_error = 0x7F; // Unknown
   RMCReceiveCallback receive_callback = NULL;
   void *custom_ptr = NULL; // Custom data for the callback, for example a pointer to a derived class object
+
+  void init_system() {
+#ifdef _WIN32
+    WSAData wsaData; WSAStartup(MAKEWORD(2, 2), &wsaData); // Load Winsock
+#endif
+  }
+
+  void cleanup_system() {
+#ifdef _WIN32
+    WSACleanup(); // Cleanup Winsock
+#endif
+  }
 
   // Write a header into the start of the buffer and return the number of bytes written
   uint16_t put_header(const uint8_t header, uint8_t *buf, const uint16_t len) {
@@ -310,8 +324,9 @@ public:
     send_disconnect(); 
     client.stop(); 
     enabled = false;
+    cleanup_system();
   }
-  void start() { enabled = true; last_packet_in = last_packet_out = millis(); }
+  void start() { enabled = true; last_packet_in = last_packet_out = millis(); init_system(); }
   bool connect() { 
     if (!client.connected() && enabled) return socket_connect();
     return client.connected();
