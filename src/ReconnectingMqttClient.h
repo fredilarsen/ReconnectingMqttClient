@@ -14,10 +14,10 @@
 // - TCPHelper or boost selectable?
 
 typedef void(*RMCReceiveCallback)(
-  const char *topic,
-  const uint8_t *payload,
-  const uint16_t len,
-  void *custom_ptr
+  const char     *topic,
+  const uint8_t  *payload,
+        uint16_t len,
+        void     *custom_ptr
 );
 
 class ReconnectingMqttClient {
