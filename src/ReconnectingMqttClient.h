@@ -1,6 +1,5 @@
 #pragma once
 #include <PJON.h>
-#include <interfaces/LINUX/TCPHelper_POSIX.h>
 
 #ifndef ARDUINO
 #include <string>
