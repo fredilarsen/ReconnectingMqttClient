@@ -2,9 +2,17 @@
 #include <PJON.h>
 
 #ifndef ARDUINO
-#include <string>
-#define String std::string
-#include <interfaces/LINUX/TCPHelper_POSIX.h>
+  #include <string>
+  #define String std::string
+  #include <interfaces/LINUX/TCPHelper_POSIX.h>
+#endif
+
+#ifndef SMCBUFSIZE
+  #ifdef ARDUINO
+    #define SMCBUFSIZE 100
+  #else
+    #define SMCBUFSIZE 1000
+  #endif
 #endif
 
 // Based on the spec http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718016
@@ -34,7 +42,7 @@ class ReconnectingMqttClient {
     UNSUBACK_1[1] = { 11 << 4 },
     CONNECT_1[1] = { 1 << 4 },
     CONNECT_7[7] = { 0x00,0x04,'M','Q','T','T',0x04 }; // MQTT version 4 = 3.1.1
-  static const uint16_t KEEPALIVE_S = 60, SMCBUFSIZE = 1000, PING_TIMEOUT = 15000;
+  static const uint16_t KEEPALIVE_S = 60, PING_TIMEOUT = 15000;
   static const uint8_t TIMEOUT_S = 10;
 
   String topic, client_id, user, password;
@@ -61,6 +69,12 @@ class ReconnectingMqttClient {
     WSACleanup(); // Cleanup Winsock
 #endif
   }
+
+  void response_delay() {
+#ifdef ARDUINO
+    delay(1); // Arduino needs some time between sending a request and readin the response
+#endif
+  }    
 
   // Write a header into the start of the buffer and return the number of bytes written
   uint16_t put_header(const uint8_t header, uint8_t *buf, const uint16_t len) {
@@ -154,8 +168,8 @@ class ReconnectingMqttClient {
   }
 
   bool socket_connect() {
-    if (!client.connect(server_ip, port)) return false;
-
+    if (!client.connect(server_ip, port)) { delay(100); return false; }
+    
     // Compose packet
     uint16_t len = 0, payloadsize = (uint16_t) (10 + (client_id.length() + 2)
       + (user.length() > 0 ? user.length() + 2 : 0)
@@ -175,6 +189,7 @@ class ReconnectingMqttClient {
     last_connect_error = 0x7F;
     last_packet_in = millis();
     if (write_to_socket(buf, len)) {
+      response_delay();
       uint16_t packet_len, payload_len;
       if (read_packet_from_socket(buf, sizeof buf, packet_len, payload_len)) {
         if (packet_len == 4 && buf[0] == CONNACK_1[0]) {
@@ -237,6 +252,7 @@ class ReconnectingMqttClient {
       if (!unsubscribe) buf[len++] = qos;
       if (write_to_socket(buf, len)) {
         // Read SUBACK or UNSUBACK
+        response_delay();
         uint16_t packet_len, payload_len;
         if (read_packet_from_socket(buf, sizeof buf, packet_len, payload_len, false)) {
           if (packet_len == (unsubscribe ? 4 : 5) && buf[0] == (unsubscribe ? UNSUBACK_1[0] : SUBACK_1[0])) {
@@ -277,8 +293,10 @@ public:
       memcpy(&buf[len], payload, payloadlen);
       len += payloadlen;
       bool ok = write_to_socket(buf, len);
+      
       // Read PUBACK if QOS>0
       if (ok && qos > 0) {
+        response_delay();
         ok = false;
         uint16_t packet_len, payload_len;
         if (read_packet_from_socket(buf, sizeof buf, packet_len, payload_len)) {
