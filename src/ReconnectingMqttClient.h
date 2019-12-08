@@ -267,12 +267,15 @@ class ReconnectingMqttClient {
   }
 
 public:
-
+  ReconnectingMqttClient() {}
   ReconnectingMqttClient(const uint8_t server_ip[4], const uint16_t server_port, const char *client_id) {
-    memcpy(this->server_ip, server_ip, 4); port = server_port; this->client_id = client_id; start();
+    set_address(server_ip, server_port, client_id);
   }
   ~ReconnectingMqttClient() { stop(); }
 
+  void set_address(const uint8_t server_ip[4], const uint16_t server_port, const char *client_id) {
+    memcpy(this->server_ip, server_ip, 4); port = server_port; this->client_id = client_id; start();
+  }
   void set_receive_callback(RMCReceiveCallback callback, void *custom_pointer) { 
     receive_callback = callback; custom_ptr = custom_pointer; 
   }
