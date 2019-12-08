@@ -91,11 +91,11 @@ class ReconnectingMqttClient {
     return in < out ? in : out;
   }
 
-  bool write_to_socket(const uint8_t *buf, const uint32_t len) {
+  bool write_to_socket(const uint8_t *buf, const uint16_t len) {
     if (client.connected()) {
       uint16_t remain = len;
       while (remain > 0) {
-        int written = client.write(buf, len);
+        int written = client.write(buf, remain);
         if (written <= 0) break;
         remain -= written;
       }
