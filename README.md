@@ -2,7 +2,7 @@
 Portable simple header-only C++ MQTT client library for Windows, Linux, Arduino, Raspberry, ESP8266, ESP32++
 
 ## Description
-This is a simple C++ header-only library for creating MQTT clients. It supports publish and subscribe, retain, QoS level 0 and 1.
+This is a simple C++ header-only library for creating MQTT clients. It supports publish and subscribe, retain, QoS level 0 and 1, text or binary payloads.
 
 It is aimed at being used on multiple platforms. It can be built on:
 * Multiple cards supported by the Arduino development environment, including Arduino Uno/Nano/Mega, ESP8266, ESP32 and others.
