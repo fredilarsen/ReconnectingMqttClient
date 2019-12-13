@@ -1,13 +1,17 @@
 # ReconnectingMqttClient
 Portable simple header-only C++ MQTT client library for Windows, Linux, Arduino, Raspberry, ESP8266, ESP32++
 
+## WHY another MQTT library?
+The list of C++ alternatives is not long, and none of them cover the range from Arduino compatible devices to Windows and Linux based devices. This library does.
+Also, this library is very small and header-only, only a few hundres lines of code. Alternatives like Paho C/C++ are hundreds of files and tens of thousands of lines of code, and may give some more grief if not having the right environment when building. On Arduino, the excellent PubSubClient library is easy to use, but cannot be used on Windows or Linux based platforms.
+
 ## Description
 This is a simple C++ header-only library for creating MQTT clients. It supports publish and subscribe, retain, QoS level 0 and 1, text or binary payloads.
 
 It is aimed at being used on multiple platforms. It can be built on:
 * Multiple cards supported by the Arduino development environment, including Arduino Uno/Nano/Mega, ESP8266, ESP32 and others.
-* Windows, with project files included for Visual Studio 2017 or later.
-* Linux, makefiles included.
+* Windows, with project files included for examples for Visual Studio 2017 or later.
+* Linux, with Makefiles included for examples.
 
 This library depends on the PJON library for portability.
 
