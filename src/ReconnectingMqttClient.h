@@ -17,7 +17,7 @@
   #endif
 #endif
 #ifndef SMCTOPICSIZE
-  #define SMCTOPICSIZE 30
+  #define SMCTOPICSIZE 50
 #endif
 
 typedef void(*RMCReceiveCallback)(
