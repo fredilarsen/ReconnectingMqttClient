@@ -17,7 +17,11 @@
   #endif
 #endif
 #ifndef SMCTOPICSIZE
-  #define SMCTOPICSIZE 50
+  #ifdef ARDUINO
+    #define SMCTOPICSIZE 50
+  #else
+    #define SMCTOPICSIZE 100
+  #endif
 #endif
 
 typedef void(*RMCReceiveCallback)(
@@ -80,6 +84,17 @@ public:
     yield();
 #endif
   }    
+
+  // Portable alternative to itoa which is not available everywhere, Returns chars added.
+  uint8_t uint8toa(uint8_t n, char *p){
+    uint8_t a = n/100, b = (n % 100)/10, c = n % 10;
+    char *p2 = p;
+    if (a!=0) *p2++ = '0' + a;
+    if (b!=0) *p2++ = '0' + b;
+    *p2++ = '0' + c;
+    *p2 = 0; // Null-terminate
+    return p2-p;
+  } 
 
   // Write a header into the start of the buffer and return the number of bytes written
   uint16_t put_header(const uint8_t header, uint8_t *buf, const uint16_t len) {
@@ -303,6 +318,11 @@ public:
       return ok;
     }
     return false;
+  }
+
+  // Text-only version for convenience
+  bool publish(const char *topic, const char *payload, const  bool retain, const uint8_t qos = 0) {
+    return publish(topic, (const uint8_t*)payload, (uint16_t)strlen(payload), retain, qos);
   }
 
   bool subscribe(const char *topic, const uint8_t qos = 1) {
