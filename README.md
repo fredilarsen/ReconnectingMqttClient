@@ -13,7 +13,7 @@ It is aimed at being used on multiple platforms. It can be built on:
 * Windows, with project files included for examples for Visual Studio 2017 or later.
 * Linux, with Makefiles included for examples.
 
-This library depends on the PJON library for portability.
+This library depends on the [PJON](https://github.com/gioblu/PJON) library for portability.
 
 Example client on Windows or Linux based platforms:
 
