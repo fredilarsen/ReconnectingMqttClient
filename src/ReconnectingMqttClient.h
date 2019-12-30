@@ -17,7 +17,11 @@
   #endif
 #endif
 #ifndef SMCTOPICSIZE
-  #define SMCTOPICSIZE 50
+  #ifdef ARDUINO
+    #define SMCTOPICSIZE 50
+  #else
+    #define SMCTOPICSIZE 100
+  #endif
 #endif
 
 typedef void(*RMCReceiveCallback)(
@@ -60,7 +64,7 @@ public:
   void *custom_ptr = NULL; // Custom data for the callback, for example a pointer to a derived class object
   char topicbuf[SMCTOPICSIZE];
   uint8_t buffer[SMCBUFSIZE];
-  volatile bool last_sub_acked = false, last_pub_acked = false; // With QoS 1 the success of the last SUB or PUB can be cheked
+  volatile bool last_sub_acked = false, last_pub_acked = false; // With QoS 1 the success of the last SUB or PUB can be checked
 
   void init_system() {
 #ifdef _WIN32
@@ -81,6 +85,17 @@ public:
 #endif
   }    
 
+  // Portable alternative to itoa which is not available everywhere, Returns chars added.
+  uint8_t uint8toa(uint8_t n, char *p) {
+    uint8_t a = n/100, b = (n % 100)/10, c = n % 10;
+    char *p2 = p;
+    if (a!=0) *p2++ = '0' + a;
+    if (b!=0) *p2++ = '0' + b;
+    *p2++ = '0' + c;
+    *p2 = 0; // Null-terminate
+    return p2-p;
+  } 
+
   // Write a header into the start of the buffer and return the number of bytes written
   uint16_t put_header(const uint8_t header, uint8_t *buf, const uint16_t len) {
     uint16_t l = len;
@@ -91,13 +106,16 @@ public:
   }
 
   // Write an UTF-8 text into the buffer at the given offset, return number of bytes written
-  uint16_t put_string(const char *text, uint8_t *buf, const uint16_t pos) {
-    uint16_t len = (uint16_t)strlen(text), p = pos;
+  uint16_t put_string(const char *text, uint16_t len, uint8_t *buf, const uint16_t pos) {
+    uint16_t p = pos;
     if (len == 0) return 0;
     buf[p++] = len >> 8;
     buf[p++] = len & 0xFF;
     memcpy(&buf[p], text, len);
     return 2 + len;
+  }
+  uint16_t put_string(const char *text, uint8_t *buf, const uint16_t pos) {
+    return put_string(text, (uint16_t) strlen(text), buf, pos);
   }
 
   bool send_disconnect() { return write_to_socket(DISCONNECT_2, 2); }
@@ -163,6 +181,7 @@ public:
       if (pos + payload_len >= bufsize) return false; // Too big
       if (!read_from_socket(buf, payload_len, pos)) return false;
       pos += payload_len;
+      buf[pos] = 0; // Null-terminate after payload to simplify usage if text
     }
     packet_len = pos;
     last_packet_in = millis();
@@ -200,7 +219,7 @@ public:
           if (buffer[3] == 0) {
             // Subscribe if a topic has been set
             if (topic.length() > 0) {
-              bool ok = send_subscribe(topic.c_str(), sub_qos);
+              bool ok = send_subscribe(topic.c_str(), sub_qos);       
               if (!ok) stop();
             }
             return client.connected();
@@ -239,16 +258,31 @@ public:
     }
   }
 
+  const char *next_topic(const char *p) { while (*p && *p != ',') p++; return p; }
+
   bool send_subscribe(const char *topic, const uint8_t qos, bool unsubscribe = false) {
     last_sub_acked = false;
     if (client.connected()) {
-      uint16_t payload_len = 2 + ((uint16_t)strlen(topic) + 2) + (unsubscribe ? 0 : 1);
+      // Pre-scan to find total payload length
+      uint16_t payload_len = 2; // packet identifier
+      const char *p = topic, *p2 = p;
+      while (*p && (p2 = next_topic(p))) { // Find next comma or final null-terminator
+        payload_len += ((uint16_t)(p2-p) + 2) + (unsubscribe ? 0 : 1);
+        p = *p2 ? p2 + 1 : p2; // Skip comma if several topics are listed
+      }
+      // Add header and packet identifier
       uint16_t len = put_header(unsubscribe ? UNSUBSCRIBE : SUBSCRIBE, buffer, payload_len);
       if (++msg_id == 0) msg_id++; // Avoid 0
       buffer[len++] = msg_id >> 8;
       buffer[len++] = msg_id & 0xFF;
-      len += put_string(topic, buffer, len);
-      if (!unsubscribe) buffer[len++] = qos;
+      // Add each topic
+      p = topic;
+      while (*p && (p2 = next_topic(p))) {
+        payload_len += ((uint16_t)(p2-p) + 2) + (unsubscribe ? 0 : 1);
+        len += put_string(p, (uint16_t)(p2-p), buffer, len);
+        if (!unsubscribe) buffer[len++] = qos;
+        p = *p2 ? p2 + 1 : p2; // Skip comma if several topics are listed
+      }
       return write_to_socket(buffer, len);
     }
     return false;
@@ -305,6 +339,12 @@ public:
     return false;
   }
 
+  // Text-only version for convenience
+  bool publish(const char *topic, const char *payload, const  bool retain, const uint8_t qos = 0) {
+    return publish(topic, (const uint8_t*)payload, (uint16_t)strlen(payload), retain, qos);
+  }
+
+  // When subscribing, multiple topics can be listed separated by comma
   bool subscribe(const char *topic, const uint8_t qos = 1) {
     if (this->topic.c_str()[0]) unsubscribe();
     this->topic = topic;
@@ -341,6 +381,7 @@ public:
     }
   }
 
+  void start() { enabled = true; last_packet_in = last_packet_out = millis(); init_system(); }
   void stop() {
     if (this->topic.length() > 0) send_subscribe(this->topic.c_str(), true); 
     send_disconnect(); 
@@ -348,7 +389,7 @@ public:
     enabled = false;
     cleanup_system();
   }
-  void start() { enabled = true; last_packet_in = last_packet_out = millis(); init_system(); }
+
   bool connect() { 
     if (!client.connected() && enabled) return socket_connect();
     return client.connected();
