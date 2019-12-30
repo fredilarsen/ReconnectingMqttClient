@@ -32,7 +32,7 @@ typedef void(*RMCReceiveCallback)(
 );
 
 class ReconnectingMqttClient {
-public:  
+public:
   // Fixed byte sequences
   const uint8_t CONNECT = 1 << 4,
     CONNACK =             2 << 4,
@@ -83,7 +83,7 @@ public:
 #ifdef ARDUINO
     yield();
 #endif
-  }    
+  }
 
   // Portable alternative to itoa which is not available everywhere, Returns chars added.
   uint8_t uint8toa(uint8_t n, char *p) {
@@ -94,7 +94,7 @@ public:
     *p2++ = '0' + c;
     *p2 = 0; // Null-terminate
     return p2-p;
-  } 
+  }
 
   // Write a header into the start of the buffer and return the number of bytes written
   uint16_t put_header(const uint8_t header, uint8_t *buf, const uint16_t len) {
@@ -163,7 +163,7 @@ public:
     return false;
   }
 
-  bool read_packet_from_socket(uint8_t *buf, const uint16_t bufsize, uint16_t &packet_len, 
+  bool read_packet_from_socket(uint8_t *buf, const uint16_t bufsize, uint16_t &packet_len,
                                uint16_t &payload_len, bool blocking = true) {
     packet_len = payload_len = buf[0] = 0;
     if (!read_from_socket(buf, 2, 0, blocking)) return false;
@@ -193,7 +193,7 @@ public:
 
   bool socket_connect() {
     if (!client.connect(server_ip, port)) { delay(100); return false; }
-    
+
     // Compose packet
     uint16_t len = 0, payloadsize = (uint16_t) (10 + (client_id.length() + 2)
       + (user.length() > 0 ? user.length() + 2 : 0)
@@ -219,7 +219,7 @@ public:
           if (buffer[3] == 0) {
             // Subscribe if a topic has been set
             if (topic.length() > 0) {
-              bool ok = send_subscribe(topic.c_str(), sub_qos);       
+              bool ok = send_subscribe(topic.c_str(), sub_qos);
               if (!ok) stop();
             }
             return client.connected();
@@ -231,7 +231,7 @@ public:
     return false;
   }
 
-  void handle_publish(const uint8_t *buf, const uint16_t packet_len, const uint16_t payload_len) {    
+  void handle_publish(const uint8_t *buf, const uint16_t packet_len, const uint16_t payload_len) {
     if (receive_callback) {
       uint16_t pos = packet_len - payload_len;
       uint8_t s0 = buf[pos++], s1 = buf[pos++];
@@ -313,14 +313,14 @@ public:
   void set_address(const uint8_t server_ip[4], const uint16_t server_port, const char *client_id) {
     memcpy(this->server_ip, server_ip, 4); port = server_port; this->client_id = client_id; start();
   }
-  void set_receive_callback(RMCReceiveCallback callback, void *custom_pointer) { 
-    receive_callback = callback; custom_ptr = custom_pointer; 
+  void set_receive_callback(RMCReceiveCallback callback, void *custom_pointer) {
+    receive_callback = callback; custom_ptr = custom_pointer;
   }
 
   bool publish(const char *topic, const uint8_t *payload, const uint16_t payloadlen, const  bool retain, const uint8_t qos = 0) {
     last_pub_acked = false;
     if (connect()) {
-      uint16_t total = ((uint16_t) strlen(topic) + 2) + (qos > 0 ? 2 : 0) + payloadlen, 
+      uint16_t total = ((uint16_t) strlen(topic) + 2) + (qos > 0 ? 2 : 0) + payloadlen,
                len = put_header(PUBLISH, buffer, total);
       if (retain) buffer[0] |= 1;
       buffer[0] |= qos << 1; // Add QOS into second or third bit
@@ -351,8 +351,8 @@ public:
     sub_qos = qos;
     return send_subscribe(this->topic.c_str(), qos, false);
   }
-  bool unsubscribe() { 
-    bool ok = send_subscribe(this->topic.c_str(), 0, true); 
+  bool unsubscribe() {
+    bool ok = send_subscribe(this->topic.c_str(), 0, true);
     this->topic = "";
     return ok;
   }
@@ -383,20 +383,20 @@ public:
 
   void start() { enabled = true; last_packet_in = last_packet_out = millis(); init_system(); }
   void stop() {
-    if (this->topic.length() > 0) send_subscribe(this->topic.c_str(), true); 
-    send_disconnect(); 
-    client.stop(); 
+    if (this->topic.length() > 0) send_subscribe(this->topic.c_str(), true);
+    send_disconnect();
+    client.stop();
     enabled = false;
     cleanup_system();
   }
 
-  bool connect() { 
+  bool connect() {
     if (!client.connected() && enabled) return socket_connect();
     return client.connected();
   }
   bool is_connected() { if (!client.connected()) client.stop(); return client.connected(); }
-  
-  // The subscribe call and the publish calls With QoS 1 will return true or false depending on whether 
+
+  // The subscribe call and the publish calls With QoS 1 will return true or false depending on whether
   // the message was written, not whether an ACK was received. This can be checked here, and it may be set
   // not immediately but some time later. Other packets may be received before the ACK arrives.
   bool was_last_sub_acked() const { return last_sub_acked; }
@@ -408,6 +408,6 @@ public:
     while (!was_last_pub_acked() && ((uint32_t)(millis()-start)<timeout_ms)) update();
     return was_last_pub_acked();
   }
-  
+
   char *topic_buf() { return topicbuf; } // Allow temporary access for composing outgoing topic, saving memory
-}; 
+};
