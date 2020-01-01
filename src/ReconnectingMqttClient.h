@@ -289,16 +289,16 @@ public:
   }
 
   void handle_suback(const uint8_t *buf, const uint16_t packet_len, const uint16_t payload_len, bool unsubscribe) {
-    if (packet_len == (unsubscribe ? 4 : 5) && buffer[0] == (unsubscribe ? UNSUBACK : SUBACK)) {
-      uint16_t mess_id = (buffer[2] << 8) | buffer[3];
-      if (!unsubscribe && buffer[4] > 2) return; // Return code indicates failure
+    if (packet_len == (unsubscribe ? 4 : 5) && buf[0] == (unsubscribe ? UNSUBACK : SUBACK)) {
+      uint16_t mess_id = (buf[2] << 8) | buf[3];
+      if (!unsubscribe && buf[4] > 2) return; // Return code indicates failure
       if (mess_id == msg_id) last_sub_acked = true;
     }
   }
 
   void handle_puback(const uint8_t *buf, const uint16_t packet_len, const uint16_t payload_len) {
-    if (packet_len == 4 && buffer[0] == PUBACK) {
-      pubacked_msg_id = (buffer[2] << 8) | buffer[3];
+    if (packet_len == 4 && buf[0] == PUBACK) {
+      pubacked_msg_id = (buf[2] << 8) | buf[3];
       if (pubacked_msg_id == msg_id) last_pub_acked = true;
     }
   }
