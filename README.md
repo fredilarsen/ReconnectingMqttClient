@@ -6,7 +6,7 @@ The list of C++ alternatives is not long, and none of them cover the range from 
 Also, this library is very small and header-only, only a few hundred lines of code. Alternatives like Paho C/C++ are hundreds of files and tens of thousands of lines of code, and may give some more grief if not having the right environment when building. On Arduino, the excellent PubSubClient library is easy to use, but cannot be used on Windows or Linux based platforms.
 
 ## Description
-This is a simple C++ header-only library for creating MQTT clients. It supports publish and subscribe, retain, QoS level 0 and 1, text or binary payloads.
+This is a simple and portable C++ header-only library for creating MQTT clients. It supports publish and subscribe, retain, QoS level 0 and 1, text or binary payloads.
 
 It is aimed at being used on multiple platforms. It can be built on:
 * Multiple cards supported by the Arduino development environment, including Arduino Uno/Nano/Mega, ESP8266, ESP32 and others.
@@ -17,7 +17,7 @@ This library depends on the [PJON](https://github.com/gioblu/PJON) library for p
 
 Example client on Windows or Linux based platforms:
 
-```
+```cpp
 #include <ReconnectingMqttClient.h>
 
 uint32_t receive_cnt = 0;
