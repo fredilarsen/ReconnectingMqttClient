@@ -20,7 +20,7 @@ int main() {
   // Subscribe and read a few published messages, then unsubscribe
   client.subscribe("hellotopic", 1);
   while (client.is_connected() && receive_cnt<2) client.update();
-  client.unsubscribe("hellotopic");
+  client.unsubscribe();
 
   // Subscribe and read a few messages again, then stop the client
   client.subscribe("hellotopic");
