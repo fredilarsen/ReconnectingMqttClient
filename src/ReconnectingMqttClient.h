@@ -79,10 +79,11 @@ public:
   }
 
   void response_delay() {
+#ifndef PJON_ESP
+    client.flush();
+#endif
 #ifdef ARDUINO
     yield();
-#else
-    client.flush();
 #endif
   }
 
