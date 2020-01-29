@@ -79,9 +79,10 @@ public:
   }
 
   void response_delay() {
-    client.flush();
 #ifdef ARDUINO
     yield();
+#else
+    client.flush();
 #endif
   }
 
@@ -152,7 +153,11 @@ public:
       uint32_t start = millis();
       while (remain > 0) {
         int n = client.read(&buf[pos], remain);
-        if (n == -1) break;
+        #if defined(PJON_ESP) && defined(ESP32)
+        if (n == -1) n = 0; // ESP32 returns -1 if nothing there, not only if connection broken
+        #else
+        if (n == -1) break; // Normal behavior, -1 = error, connection broken
+        #endif
         if (n == 0 && (uint32_t)(millis() - start) > READ_TIMEOUT) break;
         if (!blocking && n == 0 && remain == len) break; // available() sometimes gives false positive, exit if nothing
         if (n == 0) delay(1);
