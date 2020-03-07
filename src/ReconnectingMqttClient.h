@@ -103,7 +103,7 @@ public:
     uint16_t l = len;
     uint8_t pos = 0, v;
     buf[pos++] = header;
-    do { v = l % 0xF0; l /= 0xF0; buf[pos++] = l > 0 ? v | 0x80 : v; } while (l != 0);
+    do { v = l % 0x80; l /= 0x80; buf[pos++] = l > 0 ? v | 0x80 : v; } while (l != 0);
     return pos;
   }
 
