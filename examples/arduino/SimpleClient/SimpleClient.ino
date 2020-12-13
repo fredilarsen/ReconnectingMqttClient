@@ -1,4 +1,3 @@
-#define PJON_INCLUDE_ETCP
 #include <ReconnectingMqttClient.h>
 
 // Ethernet configuration for this device, MAC must be unique!

@@ -1,12 +1,11 @@
 #pragma once
 // Based on the spec http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718016
 
-#include <PJON.h>
+#include <PJONEthernetTCP.h>
 
 #ifndef ARDUINO
   #include <string>
   #define String std::string
-  #include <interfaces/LINUX/TCPHelper_POSIX.h>
 #endif
 
 #ifndef SMCBUFSIZE
