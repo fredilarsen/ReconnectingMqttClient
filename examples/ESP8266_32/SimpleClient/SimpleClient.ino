@@ -1,3 +1,4 @@
+#define PJON_INCLUDE_ETCP
 #include <ReconnectingMqttClient.h>
 
 // WiFi network to connect to

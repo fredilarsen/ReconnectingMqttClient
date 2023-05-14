@@ -3,9 +3,7 @@
 
 #include <PJONEthernetTCP.h>
 
-#ifdef ARDUINO
-  #include <PJONEthernetTCP.h>
-#else
+#ifndef ARDUINO
   #include <string>
   #define String std::string
 #endif

@@ -1,3 +1,4 @@
+#define PJON_INCLUDE_ETCP
 #define MQTT_DEBUGPRINT
 #include <ReconnectingMqttClient.h>
 
