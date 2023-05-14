@@ -3,7 +3,9 @@
 
 #include <PJON.h>
 
-#ifndef ARDUINO
+#ifdef ARDUINO
+  #include <PJONEthernetTCP.h>
+#else
   #include <string>
   #define String std::string
   #include <interfaces/LINUX/TCPHelper_POSIX.h>
